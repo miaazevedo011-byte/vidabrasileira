@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Vida — Seu Jogo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; color: #fff; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+        .cabecalho { text-align: center; padding: 20px 0; }
+        .cabecalho h1 { font-size: 1.8rem; color: #e94560; }
+        .status-bar { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .item-status { text-align: center; min-width: 80px; }
+        .item-status span { display: block; font-size: 0.8rem; color: #aaa; }
+        .item-status strong { font-size: 1.1rem; color: #4fc3f7; }
+        .caixa-historia { background: #fff; color: #222; border-radius: 16px; padding: 30px; margin-bottom: 20px; min-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .idade { font-size: 0.9rem; color: #e94560; font-weight: bold; margin-bottom: 10px; }
+        .texto { font-size: 1.1rem; line-height: 1.8; margin-bottom: 25px; }
+        .botoes { display: flex; flex-direction: column; gap: 12px; }
+        .botao { padding: 14px 20px; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.3s; text-align: left; background: #4A6FA5; color: white; }
+        .botao:hover { transform: translateX(5px); background: #3a5a8a; }
+        .reiniciar { background: #e94560; margin-top: 20px; text-align: center; }
+        .reiniciar:hover { background: #d33854; transform: none; }
+        .fim { text-align: center; }
+        .placar { background: #f0f4f8; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .escondido { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cabecalho">
+            <h1>🎬 Simulador de Vida</h1>
+        </div>
+
+        <!-- Barra de Status -->
+        <div class="status-bar">
+            <div class="item-status">
+                <span>Idade</span>
+                <strong id="valor-idade">0</strong>
+            </div>
+            <div class="item-status">
+                <span>Dinheiro</span>
+                <strong id="valor-dinheiro">R$ 0</strong>
+            </div>
+            <div class="item-status">
+                <span>Saúde</span>
+                <strong id="valor-saude">100%</strong>
+            </div>
+            <div class="item-status">
+                <span>Família</span>
+                <strong id="valor-familia">—</strong>
+            </div>
+        </div>
+
+        <!-- Área da História -->
+        <div class="caixa-historia" id="caixa-principal">
+            <div class="idade" id="texto-idade">Aos 0 anos</div>
+            <p class="texto" id="texto-historia">Parabéns! Você nasceu. Agora é com você: cada decisão molda sua vida.</p>
+            <div class="botoes" id="botoes-escolhas">
+                <!-- Os botões aparecem aqui automaticamente -->
+            </div>
+        </div>
+
+        <!-- Tela de Fim -->
+        <div class="caixa-historia escondido" id="tela-fim">
+            <div class="fim">
+                <h2>🏁 Fim da Vida</h2>
+                <p class="texto" id="texto-fim">Sua jornada chegou ao fim.</p>
+                <div class="placar">
+                    <p><strong>Patrimônio acumulado:</strong> <span id="final-dinheiro">R$ 0</span></p>
+                    <p><strong>Legado deixado:</strong> <span id="final-legado">—</span></p>
+                </div>
+                <button class="botao reiniciar" onclick="iniciarJogo()">🔄 Começar Nova Vida</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SEU JOGO — EDITE AQUI =====
+        
+        // Estado do jogador
+        let jogador = {};
+
+        // TODAS AS FASES DA VIDA — é aqui que você escreve!
+        const fases = {
+            'nascimento': {
+                idade: 0,
+                texto: "Você nasceu! 3,2kg, choro forte. A família já sonha com seu futuro. O que você vai fazer crescer?",
+                escolhas: [
+                    { texto: "💪 Crescer saudável e brincar muito", proxima: 'infancia-saudavel', efeito: { saude: 10 } },
+                    { texto: "📚 Focar em aprender desde cedo", proxima: 'infancia-estudo', efeito: { sabedoria: 10 } }
+                ]
+            },
+
+            'infancia-saudavel': {
+                idade: 6,
+                texto: "Chegou a hora de ir para a escola. Você fez amizades rápido e é muito ativo. Como leva os estudos?",
+                escolhas: [
+                    { texto: "⚽ Estuda o necessário e joga bola no recreio", proxima: 'adolescencia-esporte', efeito: { saude: 5, popularidade: 5 } },
+                    { texto: "📝 Se esforça para tirar notas boas", proxima: 'adolescencia-estudo', efeito: { sabedoria: 10 } }
+                ]
+            },
+
+            'infancia-estudo': {
+                idade: 6,
+                texto: "Na escola você já se destaca. Lê mais do que os colegas e faz perguntas inteligentes. O que te atrai mais?",
+                escolhas: [
+                    { texto: "🔬 Ciências e matemática", proxima: 'adolescencia-ciencias', efeito: { sabedoria: 15 } },
+                    { texto: "📖 História e literatura", proxima: 'adolescencia-letras', efeito: { cultura: 15 } }
+                ]
+            },
+
+            'adolescencia-esporte': {
+                idade: 17,
+                texto: "Sua dedicação aos esportes chamou atenção. Chegou a hora de decidir o futuro. O que faz?",
+                escolhas: [
+                    { texto: "🏃 Tenta carreira atlética", proxima: 'carreira-esporte', efeito: { saude: 10 } },
+                    { texto: "🎓 Faz cursinho e presta vestibular", proxima: 'carreira-universidade', efeito: { sabedoria: 5 } }
+                ]
+            },
+
+            'adolescencia-estudo': {
+                idade: 17,
+                texto: "Passou no vestibular! Agora escolhe o rumo.",
+                escolhas: [
+                    { texto: "🏥 Medicina — longo e exigente", proxima: 'carreira-medicina', efeito: { sabedoria: 20 } },
+                    { texto: "💻 Tecnologia — área em crescimento", proxima: 'carreira-tech', efeito: { dinheiro: 10 } },
+                    { texto: "📜 Direito — defender pessoas", proxima: 'carreira-direito', efeito: { cultura: 10 } }
+                ]
+            },
+
+            'adolescencia-ciencias': {
+                idade: 17,
+                texto: "Seu raciocínio lógico é seu ponto forte. Onde vai aplicar isso?",
+                escolhas: [
+                    { texto: "🔧 Engenharia", proxima: 'carreira-engenharia', efeito: { sabedoria: 15 } },
+                    { texto: "💻 Programação", proxima: 'carreira-tech', efeito: { dinheiro: 15 } }
+                ]
+            },
+
+            'adolescencia-letras': {
+                idade: 17,
+                texto: "Comunicação e empatia são suas marcas. Qual caminho seguir?",
+                escolhas: [
+                    { texto: "🧠 Psicologia", proxima: 'carreira-psicologia', efeito: { familia: 15 } },
+                    { texto: "📰 Jornalismo", proxima: 'carreira-jornalismo', efeito: { cultura: 15 } }
+                ]
+            },
+
+            'carreira-esporte': {
+                idade: 22,
+                texto: "Conseguiu patrocínio e treina profissionalmente. Mas é cansativo. Continua?",
+                escolhas: [
+                    { texto: "🏆 Persiste e busca competições", proxima: 'meia-idade-sucesso', efeito: { dinheiro: 20, saude: -5 } },
+                    { texto: "📚 Faz faculdade de Educação Física", proxima: 'meia-idade-professor', efeito: { sabedoria: 10 } }
+                ]
+            },
+
+            'carreira-universidade': {
+                idade: 22,
+                texto: "Formatura! O mercado te espera.",
+                escolhas: [
+                    { texto: "💼 Busca emprego em empresa grande", proxima: 'meia-idade-cLT', efeito: { dinheiro: 15 } },
+                    { texto: "🚀 Abre o próprio negócio", proxima: 'meia-idade-empreendedor', efeito: { dinheiro: -5, cultura: 10 } }
+                ]
+            },
+
+            'carreira-medicina': {
+                idade: 30,
+                texto: "Formou! Plantões, atendimentos, vidas salvas. É cansativo mas gratificante.",
+                escolhas: [
+                    { texto: "🏥 Trabalha em hospital público", proxima: 'meia-idade-servico', efeito: { familia: 20, dinheiro: 10 } },
+                    { texto: "🏭 Monta consultório particular", proxima: 'meia-idade-riqueza', efeito: { dinheiro: 30 } }
+                ]
+            },
+
+            'carreira-tech': {
+                idade: 25,
+                texto: "O mundo digital te abriu portas. Salário bom mas cobra muito tempo.",
+                escolhas: [
+                    { texto: "💻 Trabalha remoto e equilibra vida pessoal", proxima: 'meia-idade-equilibrio', efeito: { dinheiro: 20, familia: 10 } },
+                    { texto: "🚀 Entra em startup — alto risco, alta recompensa", proxima: 'meia-idade-risco', efeito: { dinheiro: 40, saude: -10 } }
+                ]
+            },
+
+            'carreira-psicologia': {
+                idade: 28,
+                texto: "Ouvir e acolher pessoas é sua missão. Constrói vínculos profundos.",
+                escolhas: [
+                    { texto: "❤️ Atende com foco no acolhimento", proxima: 'meia-idade-legado', efeito: { familia: 30 } },
+                    { texto: "📖 Segue mestrado e pesquisa", proxima: 'meia-idade-academico', efeito: { sabedoria: 25 } }
+                ]
+            },
+
+            'meia-idade-sucesso': {
+                idade: 45,
+                texto: "Reconhecimento, prêmios, dinheiro. Mas o corpo já sente o desgaste. O que prioriza agora?",
+                escolhas: [
+                    { texto: "👨‍👩‍👧‍👦 Dá mais atenção à família", proxima: 'aposentadoria-familia', efeito: { familia: 20 } },
+                    { texto: "💰 Investe e garante o futuro", proxima: 'aposentadoria-rico', efeito: { dinheiro: 30 } }
+                ]
+            },
+
+            'meia-idade-cLT': {
+                idade: 40,
+                texto: "Estabilidade, FGTS, férias. Mas sente que algo falta.",
+                escolhas: [
+                    { texto: "🏠 Conquista a casa própria", proxima: 'aposentadoria-tranquila', efeito: { dinheiro: -15, familia: 15 } },
+                    { texto: "🌍 Faz uma viagem dos sonhos", proxima: 'aposentadoria-memorias', efeito: { dinheiro: -10, cultura: 20 } }
+                ]
+            },
+
+            'meia-idade-riqueza': {
+                idade: 50,
+                texto: "Dinheiro não é problema. Agora quer deixar um legado.",
+                escolhas: [
+                    { texto: "🎓 Financia bolsas de estudo", proxima: 'fim-legado', efeito: { legado: 30 } },
+                    { texto: "🏡 Constrói uma casa para a família", proxima: 'fim-familia', efeito: { familia: 30 } }
+                ]
+            },
+
+            'meia-idade-equilibrio': {
+                idade: 50,
+                texto: "Conseguiu equilibrar trabalho e vida. Tem tempo para quem ama e paz de espírito.",
+                escolhas: [
+                    { texto: "🌿 Mantém o ritmo e aproveita cada dia", proxima: 'fim-satisfeito', efeito: { legado: 25 } },
+                    { texto: "📖 Escreve o que aprendeu para os mais jovens", proxima: 'fim-sabio', efeito: { legado: 35 } }
+                ]
+            },
+
+            'aposentadoria-familia': {
+                idade: 65,
+                texto: "Se aposentou rodeado de afeto. Netos, histórias, churrascos de domingo.",
+                escolhas: [
+                    { texto: "📝 Escreve memórias para a descendência", proxima: 'fim-legado', efeito: { legado: 40 } }
+                ]
+            },
+
+            'aposentadoria-rico': {
+                idade: 70,
+                texto: "Dinheiro bem aplicado rende tranquilidade. Mas sente solidão.",
+                escolhas: [
+                    { texto: "🤝 Apoia causas sociais", proxima: 'fim-generoso', efeito: { legado: 35 } }
+                ]
+            },
+
+            'aposentadoria-tranquila': {
+                idade: 68,
+                texto: "Casa quitada, contas em dia, saúde razoável. Vive com dignidade e paz.",
+                escolhas: [
+                    { texto: "☕ Agradece cada dia e descansa", proxima: 'fim-paz', efeito: { legado: 30 } }
+                ]
+            },
+
+            'fim-legado': {
+                idade: 85,
+                texto: "Sua vida serviu de exemplo. O que você deixa para o mundo?",
+                escolhas: [
+                    { texto: "✨ Deixa um legado de generosidade", proxima: 'fim-vida', efeito: {} }
+                ],
+                legado: "Um coração generoso que inspirou muitos"
+            },
+
+            'fim-familia': {
+                idade: 82,
+                texto: "A família é sua maior obra. Histórias contadas, valores passados.",
+                escolhas: [
+                    { texto: "❤️ Descansa rodeado de afeto", proxima: 'fim-vida', efeito: {} }
+                ],
+                legado: "Uma família unida e feliz"
+            },
+
+            'fim-satisfeito': {
+                idade: 80,
+                texto: "Não teve tudo, mas aproveitou tudo que teve. Sente paz.",
+                escolhas: [
+                    { texto: "😊 Vai com a consciência tranquila", proxima: 'fim-vida', efeito: {} }
+                ],
+                legado: "Uma vida equilibrada e feliz"
+            },
+
+            'fim-sabio': {
+                idade: 88,
+                texto: "Jovens o procuram para ouvir conselhos. Sua sabedoria segue viva.",
+                escolhas: [
+                    { texto: "📚 Deixa conhecimento para o futuro", proxima: 'fim-vida', efeito: {} }
+                ],
+                legado: "Conhecimento que transforma gerações"
+            },
+
+            'fim-generoso': {
+                idade: 83,
+                texto: "Transformou recursos em esperança para outros.",
+                escolhas: [
+                    { texto: "🌟 O bem que fez permanece", proxima: 'fim-vida', efeito: {} }
+                ],
+                legado: "Generosidade que mudou vidas"
+            },
+
+            'fim-paz': {
+                idade: 86,
+                texto: "Sem grandes feitos, mas com uma vida íntegra. Isso basta.",
+                escolhas: [
+                    { texto: "🕊️ Parte em paz", proxima: 'fim-vida', efeito: {} }
+                ],
+                legado: "Uma vida simples e honesta"
+            },
+
+            'fim-vida': {
+                idade: 0,
+                texto: "",
+                escolhas: [],
+                fim: true
+            }
+        };
+
+        // ===== FUNÇÕES DO JOGO =====
+        function iniciarJogo() {
+            jogador = {
+                idade: 0,
+                dinheiro: 0,
+                saude: 100,
+                sabedoria: 0,
+                cultura: 0,
+                popularidade: 0,
+                familia: 0,
+                legado: 0
+            };
+            irParaFase('nascimento');
+            document.getElementById('tela-fim').classList.add('escondido');
+            document.getElementById('caixa-principal').classList.remove('escondido');
+        }
+
+        function irParaFase(chaveFase) {
+            const fase = fases[chaveFase];
+            if (!fase) return;
+
+            // Aplica efeitos da escolha anterior
+            if (fase.escolhas && fase.escolhas.length === 0 && !fase.fim) {
+                // Fase sem escolhas = fim
+                mostrarFim(fase);
+                return;
+            }
+
+            // Atualiza idade
+            if (fase.idade) jogador.idade = fase.idade;
+
+            // Mostra conteúdo
+            document.getElementById('texto-idade').textContent = `Aos ${fase.idade || jogador.idade} anos`;
+            document.getElementById('texto-historia').textContent = fase.texto;
+
+            // Atualiza barra de status
+            atualizarStatus();
+
+            // Gera botões
+            const containerBotoes = document.getElementById('botoes-escolhas');
+            containerBotoes.innerHTML = '';
+            
+            fase.escolhas.forEach(escolha => {
+                const botao = document.createElement('button');
+                botao.className = 'botao';
+                botao.textContent = escolha.texto;
+                botao.onclick = () => {
+                    // Aplica efeitos da escolha
+                    if (escolha.efeito) {
+                        for (let atr in escolha.efeito) {
+                            jogador[atr] = (jogador[atr] || 0) + escolha.efeito[atr];
+                            if (atr === 'saude') jogador[atr] = Math.max(0, Math.min(100, jogador[atr]));
+                        }
+                    }
+                    irParaFase(escolha.proxima);
+                };
+                containerBotoes.appendChild(botao);
+            });
+
+            // Verifica se é o fim
+            if (fase.fim || (fase.escolhas.length === 0 && fase.legado)) {
+                mostrarFim(fase);
+            }
+        }
+
+        function atualizarStatus() {
+            document.getElementById('valor-idade').textContent = jogador.idade + ' anos';
+            document.getElementById('valor-dinheiro').textContent = 'R$ ' + Math.max(0, jogador.dinheiro * 100).toLocaleString('pt-BR');
+            document.getElementById('valor-saude').textContent = Math.max(0, jogador.saude) + '%';
+            
+            let familia = '—';
+            if (jogador.familia >= 25) familia = '❤️ Forte';
+            else if (jogador.familia >= 10) familia = '👨‍👩‍👧 Presente';
+            document.getElementById('valor-familia').textContent = familia;
+        }
+
+        function mostrarFim(fase) {
+            document.getElementById('caixa-principal').classList.add('escondido');
+            document.getElementById('tela-fim').classList.remove('escondido');
+            
+            let textoFinal = "Sua jornada chegou ao fim. Cada escolha te moldou.";
+            if (fase.legado) {
+                textoFinal = `Você viveu ${jogador.idade} anos. ${fase.legado}.`;
+            }
+            
+            document.getElementById('texto-fim').textContent = textoFinal;
+            document.getElementById('final-dinheiro').textContent = 'R$ ' + Math.max(0, jogador.dinheiro * 100).toLocaleString('pt-BR');
+            
+            let legadoTexto = "Uma vida vivida";
+            if (jogador.legado >= 30) legadoTexto = "Deixou um legado brilhante";
+            else if (jogador.legado >= 15) legadoTexto = "Vida com propósito";
+            else if (jogador.familia >= 20) legadoTexto = "Família unida e feliz";
+            document.getElementById('final-legado').textContent = legadoTexto;
+        }
+
+        // Inicia o jogo
+        iniciarJogo();
+    </script>
+</body>
+</html>
