@@ -3,415 +3,541 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Vida — Seu Jogo</title>
+    <title>Vida Brasileira — Simulador de Vida</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; color: #fff; }
-        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+        body { background: linear-gradient(135deg, #0f172a, #1e293b); min-height: 100vh; color: #fff; }
+        .container { max-width: 720px; margin: 0 auto; padding: 20px; }
         .cabecalho { text-align: center; padding: 20px 0; }
-        .cabecalho h1 { font-size: 1.8rem; color: #e94560; }
-        .status-bar { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-        .item-status { text-align: center; min-width: 80px; }
-        .item-status span { display: block; font-size: 0.8rem; color: #aaa; }
-        .item-status strong { font-size: 1.1rem; color: #4fc3f7; }
-        .caixa-historia { background: #fff; color: #222; border-radius: 16px; padding: 30px; margin-bottom: 20px; min-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .idade { font-size: 0.9rem; color: #e94560; font-weight: bold; margin-bottom: 10px; }
-        .texto { font-size: 1.1rem; line-height: 1.8; margin-bottom: 25px; }
-        .botoes { display: flex; flex-direction: column; gap: 12px; }
-        .botao { padding: 14px 20px; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.3s; text-align: left; background: #4A6FA5; color: white; }
-        .botao:hover { transform: translateX(5px); background: #3a5a8a; }
-        .reiniciar { background: #e94560; margin-top: 20px; text-align: center; }
-        .reiniciar:hover { background: #d33854; transform: none; }
+        .cabecalho h1 { font-size: 1.8rem; color: #f59e0b; }
+        .cabecalho p { color: #94a3b8; font-size: 0.95rem; margin-top: 5px; }
+        
+        .status-bar { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .item-status { text-align: center; }
+        .item-status span { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
+        .barra { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+        .barra > div { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .saude { background: #ef4444; }
+        .felicidade { background: #22c55e; }
+        .inteligencia { background: #3b82f6; }
+        .aparencia { background: #a855f7; }
+        .valor-dinheiro { text-align: center; margin-top: 8px; font-size: 1rem; font-weight: bold; color: #f59e0b; }
+        
+        .modos-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
+        .modo-tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+        
+        .caixa-historia { background: #fff; color: #1e293b; border-radius: 16px; padding: 30px; margin-bottom: 20px; min-height: 280px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .idade { font-size: 0.9rem; color: #f59e0b; font-weight: bold; margin-bottom: 12px; }
+        .texto { font-size: 1.05rem; line-height: 1.8; margin-bottom: 25px; }
+        .botoes { display: flex; flex-direction: column; gap: 10px; }
+        .botao { padding: 14px 18px; border: none; border-radius: 10px; font-size: 0.98rem; cursor: pointer; transition: all 0.25s; text-align: left; background: #2563eb; color: white; }
+        .botao:hover { transform: translateX(6px); background: #1d4ed8; }
+        .botao-pequeno { padding: 8px 14px; font-size: 0.9rem; background: #64748b; text-align: center; }
+        .botao-perigo { background: #dc2626; }
+        .botao-perigo:hover { background: #b91c1c; }
+        .botao-sucesso { background: #16a34a; }
+        .botao-sucesso:hover { background: #15803d; }
+        
+        .diario { background: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 15px; max-height: 150px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #e2e8f0; }
+        .diario h4 { color: #475569; margin-bottom: 8px; font-size: 0.9rem; }
+        .diario p { color: #64748b; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+        
+        .reiniciar { background: #f59e0b; margin-top: 20px; text-align: center; }
+        .reiniciar:hover { background: #d97706; transform: none; }
         .fim { text-align: center; }
-        .placar { background: #f0f4f8; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .placar { background: #f1f5f9; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: left; }
         .escondido { display: none !important; }
+        
+        .aba-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .tempo-btn { background: transparent; border: 1px solid #475569; color: #cbd5e1; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .tempo-btn.ativo { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.1); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="cabecalho">
-            <h1>🎬 Simulador de Vida</h1>
+            <h1>🇧🇷 Vida Brasileira</h1>
+            <p>Simulador de vida — sua história, suas escolhas</p>
         </div>
 
         <!-- Barra de Status -->
         <div class="status-bar">
             <div class="item-status">
-                <span>Idade</span>
-                <strong id="valor-idade">0</strong>
+                <span>❤️ Saúde</span>
+                <div class="barra"><div class="saude" id="barra-saude" style="width: 100%"></div></div>
             </div>
             <div class="item-status">
-                <span>Dinheiro</span>
-                <strong id="valor-dinheiro">R$ 0</strong>
+                <span>😊 Felicidade</span>
+                <div class="barra"><div class="felicidade" id="barra-felicidade" style="width: 50%"></div></div>
             </div>
             <div class="item-status">
-                <span>Saúde</span>
-                <strong id="valor-saude">100%</strong>
+                <span>🧠 Inteligência</span>
+                <div class="barra"><div class="inteligencia" id="barra-inteligencia" style="width: 50%"></div></div>
             </div>
             <div class="item-status">
-                <span>Família</span>
-                <strong id="valor-familia">—</strong>
+                <span>✨ Aparência</span>
+                <div class="barra"><div class="aparencia" id="barra-aparencia" style="width: 50%"></div></div>
             </div>
+        </div>
+        <div class="valor-dinheiro" id="mostra-dinheiro">💵 R$ 0,00</div>
+        <div class="valor-dinheiro" style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">
+            <span id="mostra-idade">Idade: 0 anos</span> • 
+            <span id="mostra-tempo">Tempo: Ano</span> • 
+            <span id="mostra-score">Score: ⭐⭐⭐⭐⭐</span>
+        </div>
+
+        <!-- Modos Ativos -->
+        <div class="modos-bar" id="modos-ativos" style="margin-top: 12px;"></div>
+
+        <!-- Controles de Tempo -->
+        <div class="aba-controles">
+            <div>
+                <button class="tempo-btn ativo" onclick="mudarTempo('ano')" id="btn-ano">📅 Ano</button>
+                <button class="tempo-btn" onclick="mudarTempo('mes')" id="btn-mes">📆 Mês</button>
+                <button class="tempo-btn" onclick="mudarTempo('semana')" id="btn-semana">🗓️ Semana</button>
+            </div>
+            <button class="botao botao-pequeno" onclick="toggleDiario()">📖 Diário</button>
         </div>
 
         <!-- Área da História -->
         <div class="caixa-historia" id="caixa-principal">
-            <div class="idade" id="texto-idade">Aos 0 anos</div>
-            <p class="texto" id="texto-historia">Parabéns! Você nasceu. Agora é com você: cada decisão molda sua vida.</p>
-            <div class="botoes" id="botoes-escolhas">
-                <!-- Os botões aparecem aqui automaticamente -->
+            <div class="idade" id="texto-idade">Ano 0</div>
+            <p class="texto" id="texto-historia">Bem-vindo ao Vida Brasileira! Aqui você vive uma vida realista no Brasil. Cada escolha molda seu futuro. Boa sorte! 🇧🇷</p>
+            <div class="botoes" id="botoes-escolhas"></div>
+            
+            <!-- Diário -->
+            <div class="diario escondido" id="caixa-diario">
+                <h4>📖 Diário de Bordo</h4>
+                <div id="lista-diario"><p>O diário começa aqui...</p></div>
             </div>
         </div>
 
-        <!-- Tela de Fim -->
+        <!-- Tela de Fim / Herança -->
         <div class="caixa-historia escondido" id="tela-fim">
             <div class="fim">
-                <h2>🏁 Fim da Vida</h2>
+                <h2 id="titulo-fim">🏁 Fim da Vida</h2>
                 <p class="texto" id="texto-fim">Sua jornada chegou ao fim.</p>
                 <div class="placar">
-                    <p><strong>Patrimônio acumulado:</strong> <span id="final-dinheiro">R$ 0</span></p>
-                    <p><strong>Legado deixado:</strong> <span id="final-legado">—</span></p>
+                    <p><strong>🎂 Idade:</strong> <span id="fim-idade">0</span> anos</p>
+                    <p><strong>💵 Patrimônio:</strong> R$ <span id="fim-dinheiro">0</span></p>
+                    <p><strong>🏠 Imóveis:</strong> <span id="fim-imoveis">0</span></p>
+                    <p><strong>👨‍👩‍👧‍👦 Família:</strong> <span id="fim-familia">—</span></p>
+                    <p><strong>⭐ Legado:</strong> <span id="fim-legado">—</span></p>
                 </div>
-                <button class="botao reiniciar" onclick="iniciarJogo()">🔄 Começar Nova Vida</button>
+                <div class="botoes">
+                    <button class="botao botao-sucesso" onclick="herdarFilho()">👶 Continuar como Herdeiro</button>
+                    <button class="botao reiniciar" onclick="iniciarJogo()">🔄 Começar Nova Vida</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ===== SEU JOGO — EDITE AQUI =====
-        
-        // Estado do jogador
+        // ===== ESTADO DO JOGO =====
         let jogador = {};
+        let tempoAtual = 'ano';
+        let diarioVisivel = false;
+        let diarios = [];
+        let vidaExtraUsada = false;
+        let herdeiros = ['filho', 'filha', 'sobrinho', 'neto'];
 
-        // TODAS AS FASES DA VIDA — é aqui que você escreve!
+        // ===== FASES DO JOGO =====
         const fases = {
             'nascimento': {
                 idade: 0,
-                texto: "Você nasceu! 3,2kg, choro forte. A família já sonha com seu futuro. O que você vai fazer crescer?",
+                texto: "🎉 Você nasceu no Brasil! Seus pais estão felizes. A vida pela frente é cheia de possibilidades — e desafios. Que tipo de criança você será?",
                 escolhas: [
-                    { texto: "💪 Crescer saudável e brincar muito", proxima: 'infancia-saudavel', efeito: { saude: 10 } },
-                    { texto: "📚 Focar em aprender desde cedo", proxima: 'infancia-estudo', efeito: { sabedoria: 10 } }
+                    { texto: "😃 Brincalhão e sociável", proxima: 'infancia-feliz', efeito: { felicidade: 15, aparencia: 5 }, evento: "Você cresce rodeado de amigos." },
+                    { texto: "📚 Quietinho e observador", proxima: 'infancia-estudioso', efeito: { inteligencia: 15, felicidade: 5 }, evento: "Você gosta de livros e aprendendo cedo." }
                 ]
             },
 
-            'infancia-saudavel': {
+            'infancia-feliz': {
                 idade: 6,
-                texto: "Chegou a hora de ir para a escola. Você fez amizades rápido e é muito ativo. Como leva os estudos?",
+                texto: "🏫 Chegou a hora de começar a estudar. Na escola você faz amizades rápido. Como leva os estudos?",
                 escolhas: [
-                    { texto: "⚽ Estuda o necessário e joga bola no recreio", proxima: 'adolescencia-esporte', efeito: { saude: 5, popularidade: 5 } },
-                    { texto: "📝 Se esforça para tirar notas boas", proxima: 'adolescencia-estudo', efeito: { sabedoria: 10 } }
+                    { texto: "⚽ Estuda o básico e brinca muito", proxima: 'adolescencia-equilibrada', efeito: { felicidade: 10, saude: 5 }, evento: "Vida escolar leve, muitos amigos." },
+                    { texto: "📝 Se esforça pra tirar notas boas", proxima: 'adolescencia-estudiosa', efeito: { inteligencia: 12, felicidade: -5 }, evento: "Notas excelentes, mas pouco tempo pra brincar." }
                 ]
             },
 
-            'infancia-estudo': {
+            'infancia-estudioso': {
                 idade: 6,
-                texto: "Na escola você já se destaca. Lê mais do que os colegas e faz perguntas inteligentes. O que te atrai mais?",
+                texto: "🏫 Na escola você já se destaca. Lê mais que os colegas. Os professores te elogiam. O que te atrai mais?",
                 escolhas: [
-                    { texto: "🔬 Ciências e matemática", proxima: 'adolescencia-ciencias', efeito: { sabedoria: 15 } },
-                    { texto: "📖 História e literatura", proxima: 'adolescencia-letras', efeito: { cultura: 15 } }
+                    { texto: "🔬 Matemática e Ciências", proxima: 'adolescencia-exatas', efeito: { inteligencia: 15 }, evento: "Raciocínio lógico se torna seu ponto forte." },
+                    { texto: "📖 História e Literatura", proxima: 'adolescencia-humanas', efeito: { cultura: 15 }, evento: "Amor pelas palavras e pelas histórias." }
                 ]
             },
 
-            'adolescencia-esporte': {
+            'adolescencia-equilibrada': {
+                idade: 14,
+                texto: "🎮 Adolescência. Amigos, festas, escola. Começa a pensar no futuro. O que fazer?",
+                escolhas: [
+                    { texto: "🏃 Pratica esporte e cuida do corpo", proxima: 'escolha-caminho', efeito: { saude: 15, aparencia: 10 }, evento: "Boa forma física e disciplina." },
+                    { texto: "💻 Aprende uma habilidade extra", proxima: 'escolha-caminho', efeito: { inteligencia: 8, dinheiro: 5 }, evento: "Começa a fazer pequenos trabalhos." }
+                ]
+            },
+
+            'adolescencia-estudiosa': {
+                idade: 14,
+                texto: "📚 Professores dizem que você tem futuro brilhante. Mas sente pressão. Como reage?",
+                escolhas: [
+                    { texto: "💪 Continua firme nos estudos", proxima: 'pre-vestibular', efeito: { inteligencia: 15, saude: -3 }, evento: "Sono curto, mas conhecimento cresce." },
+                    { texto: "⚡ Faz pausas e vive mais", proxima: 'adolescencia-equilibrada', efeito: { felicidade: 12, inteligencia: -3 }, evento: "Menos estresse, notas ainda boas." }
+                ]
+            },
+
+            'adolescencia-exatas': {
                 idade: 17,
-                texto: "Sua dedicação aos esportes chamou atenção. Chegou a hora de decidir o futuro. O que faz?",
+                texto: "🧮 Se raciocínio lógico é seu ponto forte. Chegou a hora de decidir o rumo dos estudos.",
                 escolhas: [
-                    { texto: "🏃 Tenta carreira atlética", proxima: 'carreira-esporte', efeito: { saude: 10 } },
-                    { texto: "🎓 Faz cursinho e presta vestibular", proxima: 'carreira-universidade', efeito: { sabedoria: 5 } }
+                    { texto: "🏗️ Engenharia — desafios lógicos", proxima: 'vestibular-aprovado', efeito: { inteligencia: 10 }, carreira: 'Engenharia', evento: "Você mira uma carreira de projetos e construções." },
+                    { texto: "💻 Tecnologia — futuro digital", proxima: 'vestibular-aprovado', efeito: { inteligencia: 8, dinheiro: 5 }, carreira: 'TI', evento: "O mundo digital te chama." },
+                    { texto: "🏦 Economia — entender o dinheiro", proxima: 'vestibular-aprovado', efeito: { inteligencia: 6, dinheiro: 8 }, carreira: 'Economia', evento: "Como funciona o dinheiro e a sociedade." }
                 ]
             },
 
-            'adolescencia-estudo': {
+            'adolescencia-humanas': {
                 idade: 17,
-                texto: "Passou no vestibular! Agora escolhe o rumo.",
+                texto: "🎤 Você entende pessoas e histórias. Qual caminho faz mais sentido?",
                 escolhas: [
-                    { texto: "🏥 Medicina — longo e exigente", proxima: 'carreira-medicina', efeito: { sabedoria: 20 } },
-                    { texto: "💻 Tecnologia — área em crescimento", proxima: 'carreira-tech', efeito: { dinheiro: 10 } },
-                    { texto: "📜 Direito — defender pessoas", proxima: 'carreira-direito', efeito: { cultura: 10 } }
+                    { texto: "🧠 Psicologia — acolher pessoas", proxima: 'vestibular-aprovado', efeito: { empatia: 15, felicidade: 5 }, carreira: 'Psicologia', evento: "Entender a mente humana é sua paixão." },
+                    { texto: "📜 Direito — justiça e leis", proxima: 'vestibular-aprovado', efeito: { cultura: 12, dinheiro: 3 }, carreira: 'Direito', evento: "Defender direitos e buscar justiça." },
+                    { texto: "📖 Jornalismo — contar histórias", proxima: 'vestibular-aprovado', efeito: { cultura: 10, aparencia: 5 }, carreira: 'Jornalismo', evento: "Informar e conectar pessoas." }
                 ]
             },
 
-            'adolescencia-ciencias': {
+            'escolha-caminho': {
                 idade: 17,
-                texto: "Seu raciocínio lógico é seu ponto forte. Onde vai aplicar isso?",
+                texto: "🎓 Terminou o ensino médio. Agora é a hora: faculdade, trabalho ou seguir outro caminho?",
                 escolhas: [
-                    { texto: "🔧 Engenharia", proxima: 'carreira-engenharia', efeito: { sabedoria: 15 } },
-                    { texto: "💻 Programação", proxima: 'carreira-tech', efeito: { dinheiro: 15 } }
+                    { texto: "📝 Faço cursinho e presto vestibular", proxima: 'vestibular', efeito: { inteligencia: 5, dinheiro: -2 }, evento: "Um ano de dedicação total aos estudos." },
+                    { texto: "💼 Procuro emprego e começo a trabalhar", proxima: 'mercado-trabalho', efeito: { dinheiro: 8, inteligencia: -2 }, evento: "Independência financeira começa cedo." },
+                    { texto: "🛵 Faço bicos e vou vendo onde chego", proxima: 'vida-informal', efeito: { dinheiro: 3, felicidade: 5 }, evento: "Liberdade tem seu preço — e suas recompensas." }
                 ]
             },
 
-            'adolescencia-letras': {
+            'pre-vestibular': {
                 idade: 17,
-                texto: "Comunicação e empatia são suas marcas. Qual caminho seguir?",
+                texto: "📖 Um ano de muito estudo. Noites sem dormir, apostilas cheias. Chegou o dia da prova.",
                 escolhas: [
-                    { texto: "🧠 Psicologia", proxima: 'carreira-psicologia', efeito: { familia: 15 } },
-                    { texto: "📰 Jornalismo", proxima: 'carreira-jornalismo', efeito: { cultura: 15 } }
+                    { texto: "🎯 Dou tudo e passo!", proxima: 'universidade', efeito: { inteligencia: 8, felicidade: 5 }, evento: "Aprovado! O esforço valeu a pena!" },
+                    { texto: "😰 Fico nervoso e não passo agora", proxima: 'vestibular', efeito: { felicidade: -8 }, evento: "Não foi dessa vez. Sempre há a próxima." }
                 ]
             },
 
-            'carreira-esporte': {
+            'vestibular': {
+                idade: 18,
+                texto: "📝 Você faz o vestibular. O resultado sai em alguns meses. Enquanto isso...",
+                escolhas: [
+                    { texto: "📚 Continuo estudando pra garantir", proxima: 'vestibular-aprovado', efeito: { inteligencia: 10 }, evento: "Persistência é o caminho." },
+                    { texto: "🛵 Faço bicos enquanto espero", proxima: 'vida-informal', efeito: { dinheiro: 4 }, evento: "Renda extra nunca é demais." },
+                    { texto: "🏛️ Tento um concurso público", proxima: 'concurso-preparacao', efeito: { inteligencia: 6, felicidade: -3 }, evento: "Estabilidade é um objetivo sério." }
+                ]
+            },
+
+            'vestibular-aprovado': {
+                idade: 18,
+                texto: "🎉 Passou na faculdade! Mas e agora? Tem condições de pagar?",
+                escolhas: [
+                    { texto: "🏫 Faculdade pública — sem mensalidade", proxima: 'universidade-publica', efeito: { dinheiro: 0, inteligencia: 10 }, evento: "Vagas concorridas, mas não paga nada." },
+                    { texto: "💰 Particular com FIES/Prouni", proxima: 'universidade-paga', efeito: { dinheiro: -5, inteligencia: 10 }, evento: "Financiamento estudantil — depois paga." },
+                    { texto: "💼 Trabalho e estudo ao mesmo tempo", proxima: 'universidade-trabalho', efeito: { dinheiro: 5, inteligencia: 5, saude: -5 }, evento: "Correria, mas dá pra equilibrar." }
+                ]
+            },
+
+            'universidade': {
                 idade: 22,
-                texto: "Conseguiu patrocínio e treina profissionalmente. Mas é cansativo. Continua?",
+                texto: "🎓 Formatura! Capelo na mão, futuro na cabeça. O mercado te espera.",
                 escolhas: [
-                    { texto: "🏆 Persiste e busca competições", proxima: 'meia-idade-sucesso', efeito: { dinheiro: 20, saude: -5 } },
-                    { texto: "📚 Faz faculdade de Educação Física", proxima: 'meia-idade-professor', efeito: { sabedoria: 10 } }
+                    { texto: "💼 Busco emprego na minha área", proxima: 'carreira-inicio', efeito: { inteligencia: 5 }, evento: "Diploma na mão, hora de atuar." },
+                    { texto: "📚 Faço pós-graduação", proxima: 'pos-graduacao', efeito: { inteligencia: 12, dinheiro: -8 }, evento: "Especialização abre portas melhores." },
+                    { texto: "🚀 Abro meu próprio negócio", proxima: 'empreendedor-inicio', efeito: { dinheiro: -10, coragem: 10 }, evento: "Risco, mas o futuro é seu." }
                 ]
             },
 
-            'carreira-universidade': {
+            'universidade-publica': {
                 idade: 22,
-                texto: "Formatura! O mercado te espera.",
+                texto: "🎓 Formou! Sem dívidas, mas com experiência acadêmica sólida. O que vem agora?",
                 escolhas: [
-                    { texto: "💼 Busca emprego em empresa grande", proxima: 'meia-idade-cLT', efeito: { dinheiro: 15 } },
-                    { texto: "🚀 Abre o próprio negócio", proxima: 'meia-idade-empreendedor', efeito: { dinheiro: -5, cultura: 10 } }
+                    { texto: "🏛️ Tento um concurso público", proxima: 'concurso-preparacao', efeito: { inteligencia: 8 }, evento: "Estabilidade e benefícios atraem você." },
+                    { texto: "💼 Procuro emprego na iniciativa privada", proxima: 'carreira-inicio', efeito: { inteligencia: 5 }, evento: "Salários podem ser mais altos." }
                 ]
             },
 
-            'carreira-medicina': {
-                idade: 30,
-                texto: "Formou! Plantões, atendimentos, vidas salvas. É cansativo mas gratificante.",
+            'universidade-paga': {
+                idade: 22,
+                texto: "🎓 Formou! Agora começa a parte difícil: pagar o financiamento estudantil todo mês.",
                 escolhas: [
-                    { texto: "🏥 Trabalha em hospital público", proxima: 'meia-idade-servico', efeito: { familia: 20, dinheiro: 10 } },
-                    { texto: "🏭 Monta consultório particular", proxima: 'meia-idade-riqueza', efeito: { dinheiro: 30 } }
+                    { texto: "💼 Emprego primeiro — pagar as contas", proxima: 'carreira-com-dividas', efeito: { dinheiro: -3, inteligencia: 5 }, evento: "Dívidas não esperam." },
+                    { texto: "🏛️ Concurso — salário garantido", proxima: 'concurso-preparacao', efeito: { inteligencia: 8, dinheiro: -2 }, evento: "Estabilidade ajuda a organizar as contas." }
                 ]
             },
 
-            'carreira-tech': {
-                idade: 25,
-                texto: "O mundo digital te abriu portas. Salário bom mas cobra muito tempo.",
+            'universidade-trabalho': {
+                idade: 22,
+                texto: "🎓 Conseguiu! Trabalhar e estudar foi cansativo, mas valeu. Tem experiência e diploma.",
                 escolhas: [
-                    { texto: "💻 Trabalha remoto e equilibra vida pessoal", proxima: 'meia-idade-equilibrio', efeito: { dinheiro: 20, familia: 10 } },
-                    { texto: "🚀 Entra em startup — alto risco, alta recompensa", proxima: 'meia-idade-risco', efeito: { dinheiro: 40, saude: -10 } }
+                    { texto: "💼 Continua na empresa ou muda de área", proxima: 'carreira-crescimento', efeito: { dinheiro: 6, inteligencia: 4 }, evento: "Sua experiência conta pontos." }
                 ]
             },
 
-            'carreira-psicologia': {
+            'mercado-trabalho': {
+                idade: 20,
+                texto: "💼 Já está no mercado. Aprendeu na prática. Não tem diploma, mas tem experiência.",
+                escolhas: [
+                    { texto: "📚 Estuda à noite e trabalha de dia", proxima: 'universidade-trabalho', efeito: { inteligencia: 6, dinheiro: 3, saude: -4 }, evento: "Correria, mas cada passo conta." },
+                    { texto: "🚀 Cresce dentro da empresa", proxima: 'carreira-crescimento', efeito: { dinheiro: 5, experiencia: 8 }, evento: "Oportunidades existem para quem se dedica." },
+                    { texto: "🛠️ Aprende um ofício e abre seu negócio", proxima: 'empreendedor-inicio', efeito: { dinheiro: -5, coragem: 8 }, evento: "Seu chefe vira seu próprio patrão." }
+                ]
+            },
+
+            'vida-informal': {
+                idade: 20,
+                texto: "🛵 A vida não segue linha reta, mas você está aprendendo. Cada dia é uma nova oportunidade.",
+                escolhas: [
+                    { texto: "🎓 Volta a estudar pra mudar de rumo", proxima: 'vestibular', efeito: { inteligencia: 5, felicidade: 3 }, evento: "Nunca é tarde para recomeçar." },
+                    { texto: "📈 Cresce nos bicos e vira empreendedor", proxima: 'empreendedor-inicio', efeito: { dinheiro: 2, coragem: 6 }, evento: "Pequenos passos viram grandes conquistas." },
+                    { texto: "🏛️ Estuda pra concurso — mudar de vida", proxima: 'concurso-preparacao', efeito: { inteligencia: 7, felicidade: -2 }, evento: "Esforço temporário, vida estável depois." }
+                ]
+            },
+
+            'concurso-preparacao': {
+                idade: 22,
+                texto: "📚 Estuda de madrugada, compra apostilas, faz simulados. O dia da prova chega.",
+                escolhas: [
+                    { texto: "📝 Faz a prova e torce pra passar", proxima: 'concurso-resultado', efeito: { inteligencia: 8 }, evento: "A preparação foi séria." },
+                    { texto: "😰 Fica ansioso e adia mais um ano", proxima: 'concurso-preparacao', efeito: { felicidade: -5 }, evento: "Segurança também tem seu tempo." }
+                ]
+            },
+
+            'concurso-resultado': {
+                idade: 23,
+                texto: "📋 Saiu o resultado! Você foi aprovado!",
+                escolhas: [
+                    { texto: "🎉 Assume o cargo! Estabilidade!", proxima: 'carreira-concurso', efeito: { dinheiro: 12, felicidade: 8, seguridade: 20 }, evento: "FGTS, férias, décimo terceiro — tudo garantido!" },
+                    { texto: "📚 Continua estudando pra um cargo melhor", proxima: 'concurso-preparacao', efeito: { inteligencia: 10, dinheiro: 2 }, evento: "Um passo de cada vez, sempre pra cima." }
+                ]
+            },
+
+            'carreira-inicio': {
+                idade: 24,
+                texto: "💼 Primeiro emprego na área. Salário inicial modesto, mas é o começo. Chega boletos também.",
+                escolhas: [
+                    { texto: "💪 Dá o melhor e busca promoção", proxima: 'carreira-crescimento', efeito: { experiencia: 8, dinheiro: 3 }, evento: "Dedicação reconhecida." },
+                    { texto: "🏠 Aluga um apartamento — independência!", proxima: 'vida-moradia', efeito: { dinheiro: -6, felicidade: 10 }, evento: "Sua casa, suas regras." },
+                    { texto: "💰 Guarda um pouquinho todo mês", proxima: 'economia-inicio', efeito: { dinheiro: 2, disciplina: 5 }, evento: "Poupança é a base de tudo." }
+                ]
+            },
+
+            'carreira-com-dividas': {
+                idade: 24,
+                texto: "💼 Salário chega, mas já sai parte pro financiamento estudantil. Organização é tudo.",
+                escolhas: [
+                    { texto: "📊 Faz orçamento mensal e controla gastos", proxima: 'economia-inicio', efeito: { dinheiro: 1, disciplina: 8 }, evento: "Conta não mente." },
+                    { texto: "💪 Se destaca e busca aumento", proxima: 'carreira-crescimento', efeito: { experiencia: 6, dinheiro: 2 }, evento: "Mais valor = mais folga no orçamento." },
+                    { texto: "🛵 Faz bico extra pra acelerar o pagamento", proxima: 'vida-informal', efeito: { dinheiro: 3, saude: -2 }, evento: "Noites ocupadas, dívida diminui mais rápido." }
+                ]
+            },
+
+            'carreira-crescimento': {
                 idade: 28,
-                texto: "Ouvir e acolher pessoas é sua missão. Constrói vínculos profundos.",
+                texto: "📈 Anos de dedicação renderam frutos. Promovido! Salário melhor. Consegue respirar melhor.",
                 escolhas: [
-                    { texto: "❤️ Atende com foco no acolhimento", proxima: 'meia-idade-legado', efeito: { familia: 30 } },
-                    { texto: "📖 Segue mestrado e pesquisa", proxima: 'meia-idade-academico', efeito: { sabedoria: 25 } }
+                    { texto: "🏠 Junta entrada e compra apartamento", proxima: 'patrimonio-imovel', efeito: { dinheiro: -15, patrimonio: 25, felicidade: 10 }, evento: "Casa própria! Conquista de uma vida." },
+                    { texto: "🚗 Troca o carro e melhora a vida", proxima: 'patrimonio-veiculo', efeito: { dinheiro: -8, felicidade: 8 }, evento: "Conforto no dia a dia." },
+                    { texto: "💰 Investe e faz dinheiro trabalhar", proxima: 'investimentos-inicio', efeito: { dinheiro: 5, inteligencia: 5 }, evento: "Renda passiva = liberdade futura." },
+                    { texto: "❤️ Conhece alguém e começa uma relação", proxima: 'relacao-namoro', efeito: { felicidade: 15 }, evento: "Compartilhar a jornada é mais leve." }
                 ]
             },
 
-            'meia-idade-sucesso': {
+            'carreira-concurso': {
+                idade: 28,
+                texto: "🏛️ Estabilidade é paz de espírito. Salário certo todo mês, benefícios, aposentadoria garantida. Mas é previsível demais?",
+                escolhas: [
+                    { texto: "😊 Aproveita a estabilidade e vive bem", proxima: 'vida-equilibrada', efeito: { dinheiro: 8, felicidade: 10, seguridade: 15 }, evento: "Paz não tem preço." },
+                    { texto: "🚀 Faz renda extra com investimentos", proxima: 'investimentos-inicio', efeito: { dinheiro: 4, inteligencia: 5 }, evento: "Dinheiro parado perde valor." },
+                    { texto: "🏠 Compra casa própria com financiamento", proxima: 'patrimonio-imovel', efeito: { dinheiro: -10, patrimonio: 20, felicidade: 8 }, evento: "Financiamento é longo, mas é SEU." },
+                    { texto: "❤️ Casa, família, estabilidade — tudo junto", proxima: 'relacao-casamento', efeito: { felicidade: 18, familia: 15 }, evento: "Vida completa e tranquila." }
+                ]
+            },
+
+            'empreendedor-inicio': {
+                idade: 25,
+                texto: "🚀 Abrir o próprio negócio é emocionante... e assustador. Sem salário garantido, mas todo lucro é seu.",
+                escolhas: [
+                    { texto: "🥤 Lanchonete — movimento constante", proxima: 'negocio-lanchonete', efeito: { dinheiro: -8, coragem: 5 }, evento: "Pessoas sempre precisam comer." },
+                    { texto: "👕 Loja de roupas — tendências", proxima: 'negocio-loja', efeito: { dinheiro: -10, criatividade: 8 }, evento: "Estilo nunca sai de moda." },
+                    { texto: "🔧 Oficina — serviço essencial", proxima: 'negocio-oficina', efeito: { dinheiro: -7, habilidade: 6 }, evento: "Todo mundo tem carro quebrado às vezes." },
+                    { texto: "💻 Startup — tecnologia, risco alto, recompensa alta", proxima: 'negocio-startup', efeito: { dinheiro: -12, inteligencia: 10 }, evento: "O futuro é digital." }
+                ]
+            },
+
+            'negocio-lanchonete': {
+                idade: 28,
+                texto: "🥤 A lanchonete vai bem. Clientes fiéis, mas trabalho todos os dias. Contratar alguém pra ajudar?",
+                escolhas: [
+                    { texto: "👨‍🍳 Contrata um funcionário — cresce mais", proxima: 'negocio-crescimento', efeito: { dinheiro: -4, tempo: 10 }, evento: "Deixa de ser só você contra o mundo." },
+                    { texto: "💪 Continua tocando sozinho — mais lucro líquido", proxima: 'negocio-estavel', efeito: { dinheiro: 6, saude: -3 }, evento: "Cansa, mas todo lucro é seu." },
+                    { texto: "🏡 Vende o negócio e investe em imóveis", proxima: 'modo-rentier', efeito: { dinheiro: 20, patrimonio: 15 }, evento: "Troca trabalho por renda passiva." }
+                ]
+            },
+
+            'negocio-loja': {
+                idade: 29,
+                texto: "👕 A loja tem seus altos e baixos conforme a moda muda. Precisa se reinventar sempre.",
+                escolhas: [
+                    { texto: "📱 Vende online também — chega mais gente", proxima: 'negocio-crescimento', efeito: { dinheiro: 4, criatividade: 5 }, evento: "Internet não tem fronteiras." },
+                    { texto: "📍 Muda pra um ponto melhor — mais movimento", proxima: 'negocio-crescimento', efeito: { dinheiro: -6, felicidade: 5 }, evento: "Localização é tudo." },
+                    { texto: "🌾 Vende tudo e investe na roça — Modo Agro", proxima: 'modo-agro', efeito: { dinheiro: 15, coragem: 8 }, evento: "Terra é riqueza que não acaba." }
+                ]
+            },
+
+            'negocio-oficina': {
+                idade: 30,
+                texto: "🔧 A oficina é respeitada na região. Carros quebrados não faltam. Mas é físico e cansativo.",
+                escolhas: [
+                    { texto: "🔩 Expande — vende peças também", proxima: 'negocio-crescimento', efeito: { dinheiro: 5, habilidade: 4 }, evento: "Mais serviços = mais renda." },
+                    { texto: "👦 Ensina um filho ou sobrinho", proxima: 'legado-oficina', efeito: { conhecimento: 15, familia: 10 }, evento: "Passar adiante é riqueza que se multiplica." },
+                    { texto: "🏛️ Vende e entra na política — comunidade", proxima: 'modo-politica', efeito: { dinheiro: 10, influencia: 12 }, evento: "Conhecimento local = votos." }
+                ]
+            },
+
+            'negocio-startup': {
+                idade: 29,
+                texto: "💻 A startup cresceu rápido demais. Investidores aparecem com proposta tentadora.",
+                escolhas: [
+                    { texto: "💰 Vende parte — fica rico agora", proxima: 'modo-holofote', efeito: { dinheiro: 40, fama: 15 }, evento: "Dinheiro na conta de uma vez só!" },
+                    { texto: "🚀 Recusa e mantém o controle — longo prazo", proxima: 'negocio-impire', efeito: { dinheiro: 10, poder: 20 }, evento: "Seu projeto, suas regras." },
+                    { texto: "🌍 Cresce e abre filiais", proxima: 'negocio-crescimento', efeito: { dinheiro: 8, influencia: 10 }, evento: "Seu nome vira marca." }
+                ]
+            },
+
+            'negocio-estavel': {
+                idade: 35,
+                texto: "🏢 O negócio está consolidado. Renda estável, mas você trabalha muito. É hora de pensar em herança?",
+                escolhas: [
+                    { texto: "👨‍👦 Prepara um sucessor na família", proxima: 'legado-negocio', efeito: { familia: 20, conhecimento: 10 }, evento: "O que construiu não se perde." },
+                    { texto: "💰 Contrata gerente e tira férias", proxima: 'vida-equilibrada', efeito: { dinheiro: 2, felicidade: 15, saude: 5 }, evento: "Você construiu isso — merece aproveitar." },
+                    { texto: "🏦 Investe lucros em imóveis — renda passiva", proxima: 'modo-rentier', efeito: { dinheiro: 12, patrimonio: 18 }, evento: "Dinheiro trabalhando pra você." }
+                ]
+            },
+
+            'negocio-crescimento': {
+                idade: 35,
+                texto: "📈 Cresceu! Funcionários, ponto maior, mais lucro. Mas a complexidade também aumentou.",
+                escolhas: [
+                    { texto: "📊 Contrata um administrador", proxima: 'negocio-impire', efeito: { dinheiro: 8, tempo: 15 }, evento: "Você comanda, outros executam." },
+                    { texto: "🌐 Expande pra outra cidade", proxima: 'negocio-impire', efeito: { dinheiro: 5, influencia: 12 }, evento: "Seu nome chega mais longe." },
+                    { texto: "🎉 Aproveita o sucesso e reduz ritmo", proxima: 'vida-equilibrada', efeito: { dinheiro: 4, felicidade: 12 }, evento: "Sucesso sem tempo pra aproveitar não tem graça." }
+                ]
+            },
+
+            'negocio-impire': {
                 idade: 45,
-                texto: "Reconhecimento, prêmios, dinheiro. Mas o corpo já sente o desgaste. O que prioriza agora?",
+                texto: "🏆 Você construiu um império. Funcionários dependem de você, comunidade te conhece. Mas o preço é tempo.",
                 escolhas: [
-                    { texto: "👨‍👩‍👧‍👦 Dá mais atenção à família", proxima: 'aposentadoria-familia', efeito: { familia: 20 } },
-                    { texto: "💰 Investe e garante o futuro", proxima: 'aposentadoria-rico', efeito: { dinheiro: 30 } }
+                    { texto: "👨‍👩‍👧‍👦 Passa mais tempo com a família", proxima: 'aposentadoria-familia', efeito: { familia: 25, felicidade: 10 }, evento: "Dinheiro recupera, tempo perdido não." },
+                    { texto: "🏛️ Usa influência e entra na política", proxima: 'modo-politica', efeito: { influencia: 20, fama: 10 }, evento: "Poder econômico vira poder político." },
+                    { texto: "🌾 Diversifica — compra fazenda", proxima: 'modo-agro', efeito: { dinheiro: -15, patrimonio: 25, felicidade: 8 }, evento: "Voltar à terra é voltar às raízes." },
+                    { texto: "🎖️ Prepara a aposentadoria com tranquilidade", proxima: 'aposentadoria-tranquila', efeito: { dinheiro: 20, felicidade: 15 }, evento: "Colher o que plantou." }
                 ]
             },
 
-            'meia-idade-cLT': {
+            'modo-rentier': {
                 idade: 40,
-                texto: "Estabilidade, FGTS, férias. Mas sente que algo falta.",
+                texto: "🏘️ Agora seus imóveis geram renda mensal. Aluguel paga as contas sem precisar trabalhar. Liberdade!",
                 escolhas: [
-                    { texto: "🏠 Conquista a casa própria", proxima: 'aposentadoria-tranquila', efeito: { dinheiro: -15, familia: 15 } },
-                    { texto: "🌍 Faz uma viagem dos sonhos", proxima: 'aposentadoria-memorias', efeito: { dinheiro: -10, cultura: 20 } }
+                    { texto: "🏡 Compra mais um imóvel — renda cresce", proxima: 'modo-rentier', efeito: { dinheiro: -20, patrimonio: 30 }, evento: "Cada imóvel é um passo a mais na liberdade financeira." },
+                    { texto: "✈️ Viaja pelo Brasil — aproveita a vida", proxima: 'aposentadoria-memorias', efeito: { dinheiro: -8, felicidade: 25 }, evento: "Paisagens, culturas, pessoas — memórias valem mais que ouro." },
+                    { texto: "🎓 Investe em educação dos filhos", proxima: 'legado-familia', efeito: { familia: 20, conhecimento: 15 }, evento: "Melhor herança é conhecimento." }
                 ]
             },
 
-            'meia-idade-riqueza': {
+            'modo-agro': {
+                idade: 38,
+                texto: "🌾 A vida no campo é diferente. Acorda cedo, cuida da terra, espera a estação. Tempo corre diferente aqui.",
+                escolhas: [
+                    { texto: "🌱 Planta grãos — renda estável", proxima: 'agro-safra', efeito: { dinheiro: 10, saude: 10 }, evento: "Terra cuidada sempre retorna." },
+                    { texto: "🐔 Cria animais — diversifica", proxima: 'agro-animais', efeito: { dinheiro: 8, felicidade: 12 }, evento: "Vida na fazenda é cheia de vida." },
+                    { texto: "🏡 Constrói uma casa grande na propriedade", proxima: 'legado-terra', efeito: { dinheiro: -12, patrimonio: 25, familia: 15 }, evento: "Terra é herança que passa de geração em geração." }
+                ]
+            },
+
+            'agro-safra': {
+                idade: 42,
+                texto: "🌤️ A colheita foi boa! Mas o clima muda. Secas e pragas são riscos reais. Diversificar é segurança.",
+                escolhas: [
+                    { texto: "💰 Guarda parte do lucro — reserva de segurança", proxima: 'economia-inicio', efeito: { dinheiro: 15 }, evento: "Quando a chuva não vem, a reserva protege." },
+                    { texto: "🌳 Planta espécies diferentes — protege a terra", proxima: 'agro-sustentavel', efeito: { conhecimento: 10, felicidade: 8 }, evento: "Terra saudável é para sempre." },
+                    { texto: "🏙️ Vende produção direto na cidade — lucro maior", proxima: 'negocio-crescimento', efeito: { dinheiro: 12, influencia: 5 }, evento: "Encurtar caminhos significa mais no bolso." }
+                ]
+            },
+
+            'agro-animais': {
+                idade: 44,
+                texto: "🐄 Os animais trazem alegria e renda. Trabalho diário, mas gratificante.",
+                escolhas: [
+                    { texto: "👨‍👩‍👧‍👦 Envolve a família — tradição", proxima: 'legado-terra', efeito: { familia: 20, conhecimento: 10 }, evento: "Crianças aprendem cedo o valor do trabalho." },
+                    { texto: "🥚 Vende produtos direto ao consumidor", proxima: 'negocio-crescimento', efeito: { dinheiro: 10, felicidade: 8 }, evento: "Valor justo para seu esforço." },
+                    { texto: "🌾 Faz parceria com produtores vizinhos", proxima: 'comunidade-forte', efeito: { influencia: 15, felicidade: 10 }, evento: "União faz a força no campo." }
+                ]
+            },
+
+            'modo-politica': {
+                idade: 40,
+                texto: "🏛️ Entrou na vida pública. Promessas, críticas, aplausos e vaias. É servir ou se servir?",
+                escolhas: [
+                    { texto: "🤝 Trabalha honestamente pela comunidade", proxima: 'politica-honesta', efeito: { reputacao: 30, felicidade: 15 }, evento: "Povo reconhece quem trabalha de verdade." },
+                    { texto: "📈 Faz alianças e sobe na carreira política", proxima: 'politica-poder', efeito: { influencia: 25, dinheiro: 10 }, evento: "Política é jogo de alianças." },
+                    { texto: "🏠 Cumpre mandato e volta pra casa", proxima: 'aposentadoria-tranquila', efeito: { reputacao: 15, felicidade: 10 }, evento: "Fez o que pode. Consciência tranquila é o melhor prêmio." }
+                ]
+            },
+
+            'politica-honesta': {
                 idade: 50,
-                texto: "Dinheiro não é problema. Agora quer deixar um legado.",
+                texto: "🏆 Não ficou rico, mas é respeitado. Nas ruas te cumprimentam com sorriso.",
                 escolhas: [
-                    { texto: "🎓 Financia bolsas de estudo", proxima: 'fim-legado', efeito: { legado: 30 } },
-                    { texto: "🏡 Constrói uma casa para a família", proxima: 'fim-familia', efeito: { familia: 30 } }
+                    { texto: "📖 Escreve um livro — lições aprendidas", proxima: 'legado-publico', efeito: { conhecimento: 20, reputacao: 20 }, evento: "Palavras sobrevivem ao tempo." },
+                    { texto: "👨‍👩‍👧‍👦 Se afasta da política e vive pra família", proxima: 'aposentadoria-familia', efeito: { familia: 25, felicidade: 15 }, evento: "A melhor obra é a família bem cuidada." },
+                    { texto: "🌍 Continua como voluntário — sem cargo", proxima: 'comunidade-forte', efeito: { reputacao: 25, felicidade: 12 }, evento: "Servir não precisa de cargo, só de coração." }
                 ]
             },
 
-            'meia-idade-equilibrio': {
-                idade: 50,
-                texto: "Conseguiu equilibrar trabalho e vida. Tem tempo para quem ama e paz de espírito.",
+            'politica-poder': {
+                idade: 55,
+                texto: "🏛️ Chegou longe. Cargos importantes, influência, contatos. Mas a cobrança é constante.",
                 escolhas: [
-                    { texto: "🌿 Mantém o ritmo e aproveita cada dia", proxima: 'fim-satisfeito', efeito: { legado: 25 } },
-                    { texto: "📖 Escreve o que aprendeu para os mais jovens", proxima: 'fim-sabio', efeito: { legado: 35 } }
+                    { texto: "⚖️ Se mantém íntegro até o fim", proxima: 'aposentadoria-legado', efeito: { reputacao: 20, felicidade: 5 }, evento: "Integridade é mais forte que o poder." },
+                    { texto: "📉 Se afasta antes de se corromper", proxima: 'aposentadoria-tranquila', efeito: { reputacao: 10, felicidade: 15 }, evento: "Saber parar é sabedoria." },
+                    { texto: "💰 Se deixa levar... riscos", proxima: 'submundo-risco', efeito: { dinheiro: 30, reputacao: -40 }, evento: "O caminho mais fácil tem pedras escondidas." }
                 ]
             },
 
-            'aposentadoria-familia': {
-                idade: 65,
-                texto: "Se aposentou rodeado de afeto. Netos, histórias, churrascos de domingo.",
+            'modo-holofote': {
+                idade: 32,
+                texto: "⭐ Fama chegou! Reconhecimento, convites, aplausos. Mas todo mundo te observa.",
                 escolhas: [
-                    { texto: "📝 Escreve memórias para a descendência", proxima: 'fim-legado', efeito: { legado: 40 } }
+                    { texto: "🎤 Aproveita com responsabilidade", proxima: 'fama-saudavel', efeito: { fama: 20, dinheiro: 20, felicidade: 5 }, evento: "Fama é ferramenta, não identidade." },
+                    { texto: "🎉 Vira estrela e vive intensamente", proxima: 'fama-intensa', efeito: { fama: 30, dinheiro: 25, saude: -10 }, evento: "Brilha forte, mas pode consumir." },
+                    { texto: "🛡️ Mantém vida privada longe das câmeras", proxima: 'fama-equilibrio', efeito: { fama: 10, felicidade: 20, familia: 15 }, evento: "Quem te ama te conhece de verdade, não pela imagem." }
                 ]
             },
 
-            'aposentadoria-rico': {
-                idade: 70,
-                texto: "Dinheiro bem aplicado rende tranquilidade. Mas sente solidão.",
+            'fama-saudavel': {
+                idade: 40,
+                texto: "⭐ Você brilha sem perder a essência. Pessoas admiram não só o que faz, mas quem você é.",
                 escolhas: [
-                    { texto: "🤝 Apoia causas sociais", proxima: 'fim-generoso', efeito: { legado: 35 } }
+                    { texto: "🎓 Usa a influência para ajudar causas", proxima: 'legado-publico', efeito: { reputacao: 30, felicidade: 15 }, evento: "Plataforma alta = voz que faz diferença." },
+                    { texto: "👨‍👩‍👧‍👦 Reduz agenda e prioriza família", proxima: 'aposentadoria-familia', efeito: { familia: 25, felicidade: 12 }, evento: "Fama some, amor permanece." },
+                    { texto: "📚 Ensina jovens — passa a experiência", proxima: 'legado-conhecimento', efeito: { conhecimento: 20, reputacao: 15 }, evento: "O sucesso completo é levantar outros também." }
                 ]
             },
 
-            'aposentadoria-tranquila': {
-                idade: 68,
-                texto: "Casa quitada, contas em dia, saúde razoável. Vive com dignidade e paz.",
+            'fama-intensa': {
+                idade: 38,
+                texto: "🔥 A pressão é grande. Mídia, expectativa, sempre em evidência. O brilho começa a cansar.",
                 escolhas: [
-                    { texto: "☕ Agradece cada dia e descansa", proxima: 'fim-paz', efeito: { legado: 30 } }
-                ]
-            },
-
-            'fim-legado': {
-                idade: 85,
-                texto: "Sua vida serviu de exemplo. O que você deixa para o mundo?",
-                escolhas: [
-                    { texto: "✨ Deixa um legado de generosidade", proxima: 'fim-vida', efeito: {} }
-                ],
-                legado: "Um coração generoso que inspirou muitos"
-            },
-
-            'fim-familia': {
-                idade: 82,
-                texto: "A família é sua maior obra. Histórias contadas, valores passados.",
-                escolhas: [
-                    { texto: "❤️ Descansa rodeado de afeto", proxima: 'fim-vida', efeito: {} }
-                ],
-                legado: "Uma família unida e feliz"
-            },
-
-            'fim-satisfeito': {
-                idade: 80,
-                texto: "Não teve tudo, mas aproveitou tudo que teve. Sente paz.",
-                escolhas: [
-                    { texto: "😊 Vai com a consciência tranquila", proxima: 'fim-vida', efeito: {} }
-                ],
-                legado: "Uma vida equilibrada e feliz"
-            },
-
-            'fim-sabio': {
-                idade: 88,
-                texto: "Jovens o procuram para ouvir conselhos. Sua sabedoria segue viva.",
-                escolhas: [
-                    { texto: "📚 Deixa conhecimento para o futuro", proxima: 'fim-vida', efeito: {} }
-                ],
-                legado: "Conhecimento que transforma gerações"
-            },
-
-            'fim-generoso': {
-                idade: 83,
-                texto: "Transformou recursos em esperança para outros.",
-                escolhas: [
-                    { texto: "🌟 O bem que fez permanece", proxima: 'fim-vida', efeito: {} }
-                ],
-                legado: "Generosidade que mudou vidas"
-            },
-
-            'fim-paz': {
-                idade: 86,
-                texto: "Sem grandes feitos, mas com uma vida íntegra. Isso basta.",
-                escolhas: [
-                    { texto: "🕊️ Parte em paz", proxima: 'fim-vida', efeito: {} }
-                ],
-                legado: "Uma vida simples e honesta"
-            },
-
-            'fim-vida': {
-                idade: 0,
-                texto: "",
-                escolhas: [],
-                fim: true
-            }
-        };
-
-        // ===== FUNÇÕES DO JOGO =====
-        function iniciarJogo() {
-            jogador = {
-                idade: 0,
-                dinheiro: 0,
-                saude: 100,
-                sabedoria: 0,
-                cultura: 0,
-                popularidade: 0,
-                familia: 0,
-                legado: 0
-            };
-            irParaFase('nascimento');
-            document.getElementById('tela-fim').classList.add('escondido');
-            document.getElementById('caixa-principal').classList.remove('escondido');
-        }
-
-        function irParaFase(chaveFase) {
-            const fase = fases[chaveFase];
-            if (!fase) return;
-
-            // Aplica efeitos da escolha anterior
-            if (fase.escolhas && fase.escolhas.length === 0 && !fase.fim) {
-                // Fase sem escolhas = fim
-                mostrarFim(fase);
-                return;
-            }
-
-            // Atualiza idade
-            if (fase.idade) jogador.idade = fase.idade;
-
-            // Mostra conteúdo
-            document.getElementById('texto-idade').textContent = `Aos ${fase.idade || jogador.idade} anos`;
-            document.getElementById('texto-historia').textContent = fase.texto;
-
-            // Atualiza barra de status
-            atualizarStatus();
-
-            // Gera botões
-            const containerBotoes = document.getElementById('botoes-escolhas');
-            containerBotoes.innerHTML = '';
-            
-            fase.escolhas.forEach(escolha => {
-                const botao = document.createElement('button');
-                botao.className = 'botao';
-                botao.textContent = escolha.texto;
-                botao.onclick = () => {
-                    // Aplica efeitos da escolha
-                    if (escolha.efeito) {
-                        for (let atr in escolha.efeito) {
-                            jogador[atr] = (jogador[atr] || 0) + escolha.efeito[atr];
-                            if (atr === 'saude') jogador[atr] = Math.max(0, Math.min(100, jogador[atr]));
-                        }
-                    }
-                    irParaFase(escolha.proxima);
-                };
-                containerBotoes.appendChild(botao);
-            });
-
-            // Verifica se é o fim
-            if (fase.fim || (fase.escolhas.length === 0 && fase.legado)) {
-                mostrarFim(fase);
-            }
-        }
-
-        function atualizarStatus() {
-            document.getElementById('valor-idade').textContent = jogador.idade + ' anos';
-            document.getElementById('valor-dinheiro').textContent = 'R$ ' + Math.max(0, jogador.dinheiro * 100).toLocaleString('pt-BR');
-            document.getElementById('valor-saude').textContent = Math.max(0, jogador.saude) + '%';
-            
-            let familia = '—';
-            if (jogador.familia >= 25) familia = '❤️ Forte';
-            else if (jogador.familia >= 10) familia = '👨‍👩‍👧 Presente';
-            document.getElementById('valor-familia').textContent = familia;
-        }
-
-        function mostrarFim(fase) {
-            document.getElementById('caixa-principal').classList.add('escondido');
-            document.getElementById('tela-fim').classList.remove('escondido');
-            
-            let textoFinal = "Sua jornada chegou ao fim. Cada escolha te moldou.";
-            if (fase.legado) {
-                textoFinal = `Você viveu ${jogador.idade} anos. ${fase.legado}.`;
-            }
-            
-            document.getElementById('texto-fim').textContent = textoFinal;
-            document.getElementById('final-dinheiro').textContent = 'R$ ' + Math.max(0, jogador.dinheiro * 100).toLocaleString('pt-BR');
-            
-            let legadoTexto = "Uma vida vivida";
-            if (jogador.legado >= 30) legadoTexto = "Deixou um legado brilhante";
-            else if (jogador.legado >= 15) legadoTexto = "Vida com propósito";
-            else if (jogador.familia >= 20) legadoTexto = "Família unida e feliz";
-            document.getElementById('final-legado').textContent = legadoTexto;
-        }
-
-        // Inicia o jogo
-        iniciarJogo();
-    </script>
-</body>
-</html>
+                    { texto: "🧠 Faz terapia e reavalia prioridades", proxima: 'saude-mental', efeito: { saude: 15, felicidade: 10 }, evento: "Cuidar de si não é fraqueza, é coragem." },
+                    { texto: "📱 Se afasta das redes e reduz exposição", proxima: 'fama-equilibrio', efeito: { fama: -15, felic
