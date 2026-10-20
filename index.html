@@ -12,12 +12,12 @@
 <header class="top-bar">
     <div class="profile-icon" onclick="abrirPerfil()">👤</div>
     <h1 id="page-title">Vida Brasileira</h1>
-    <div class="time-display" id="game-time">19:21 — 20/10/2026</div>
+    <div class="time-display" id="game-time">19:38 — 20/10/2026</div>
 </header>
 
 <!-- Conteúdo Principal -->
 <main id="main-content">
-    <div class="tela-inicial">
+    <div class="tela-inicial" id="tela-inicio">
         <h2>Bem-vindo ao Vida Brasileira!</h2>
         <p>Escolha uma opção na barra inferior para começar sua jornada.</p>
     </div>
@@ -45,11 +45,11 @@
 
 <!-- Navegação Principal -->
 <nav class="bottom-nav">
-    <button class="nav-btn" onclick="mostrarTela('carreira')">💼<br><small>Carreira</small></button>
-    <button class="nav-btn" onclick="mostrarTela('celular')">📱<br><small>Celular</small></button>
-    <button class="nav-btn" onclick="pularTempo()">⏩<br><small>Tempo</small></button>
-    <button class="nav-btn" onclick="mostrarTela('familia')">👨‍👩‍👧<br><small>Família</small></button>
-    <button class="nav-btn" onclick="mostrarTela('mais')">⚙️<br><small>Mais</small></button>
+    <button class="nav-btn" id="btn-carreira" onclick="mostrarTela('carreira')">💼<br><small>Carreira</small></button>
+    <button class="nav-btn" id="btn-celular" onclick="mostrarTela('celular')">📱<br><small>Celular</small></button>
+    <button class="nav-btn" id="btn-tempo" onclick="pularTempo()">⏩<br><small>Tempo</small></button>
+    <button class="nav-btn" id="btn-familia" onclick="mostrarTela('familia')">👨‍👩‍👧<br><small>Família</small></button>
+    <button class="nav-btn" id="btn-mais" onclick="mostrarTela('mais')">⚙️<br><small>Mais</small></button>
 </nav>
 
 <script src="script.js"></script>
